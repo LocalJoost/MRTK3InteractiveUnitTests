@@ -17,9 +17,8 @@ using Vector3 = UnityEngine.Vector3;
 public class ButtonsTests : BaseRuntimeInputTests
 {
     private const string MenuGuid = "e9ddf3517c4b9c7488c12bdec6a9917f";
-    private static readonly string MenuGuidPath = AssetDatabase.GUIDToAssetPath(MenuGuid);
     private const int HandMoveSteps = 1;
-    private const int UpdateFrames = 2;
+    private const int UpdateFrames = 1;
     private GameObject testGameObject;
     private Vector3 initialTestGameObjectPosition;
     private List<PressableButton> buttons;
@@ -27,7 +26,7 @@ public class ButtonsTests : BaseRuntimeInputTests
     [SetUp]
     public void Init()
     {
-        testGameObject = InstantiatePrefab(MenuGuidPath);
+        testGameObject = InstantiatePrefab(MenuGuid);
         initialTestGameObjectPosition = testGameObject.transform.position;
         var gridLayout = testGameObject.GetComponentInChildren<GridLayoutGroup>();
         buttons = gridLayout.GetComponentsInChildren<PressableButton>().ToList();
@@ -67,6 +66,8 @@ public class ButtonsTests : BaseRuntimeInputTests
         {
             hand = h;
         });
+        
+        Assert.AreEqual(0, GetToggledButtonCount());
         
         yield return PokeHand(hand, handDelta);
         Assert.AreEqual(1, GetToggledButtonCount());
@@ -148,8 +149,9 @@ public class ButtonsTests : BaseRuntimeInputTests
         }
     }
     
-    private GameObject InstantiatePrefab(string prefabPath)
+    private GameObject InstantiatePrefab(string guid)
     {
+        var prefabPath = AssetDatabase.GUIDToAssetPath(guid);
         var prefab = AssetDatabase.LoadAssetAtPath(prefabPath, typeof(Object));
         return Object.Instantiate(prefab) as GameObject;
     }
