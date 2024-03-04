@@ -14,16 +14,15 @@ namespace InteractionTests
     public class ButtonsTests : BaseRuntimeHandInputTests
     {
         private const string MenuGuid = "e9ddf3517c4b9c7488c12bdec6a9917f";
-        private const string ButtonHolder = "Buttons-GridLayout";
         private GameObject testGameObject;
-        private List<PressableButton> buttons;
+        private List<PressableButton> allButtons;
 
         [SetUp]
         public void Init()
         {
             testGameObject = InstantiatePrefab(MenuGuid);
-            var gridLayout = testGameObject.GetComponentInChildren<GridLayoutGroup>();
-            buttons = gridLayout.GetComponentsInChildren<PressableButton>().ToList();
+            allButtons = FindByName(testGameObject, "Buttons-GridLayout").
+                            GetComponentsInChildren<PressableButton>().ToList();
         }
 
         public override IEnumerator TearDown()
@@ -35,9 +34,7 @@ namespace InteractionTests
         [UnityTest]
         public IEnumerator ButtonPressDoesNotEnableOtherButtons()
         {
-            var button = 
-                FindByName(testGameObject, ButtonHolder)
-                    .GetComponentInChildren<PressableButton>();
+            var button = allButtons.First();
             var initialHandPosition =
                 GetInitialHandPositionBefore(button.gameObject, HandInFrontOfGameObject);
             TestHand hand = null;
@@ -53,15 +50,12 @@ namespace InteractionTests
         public IEnumerator PressingTwoDifferentButtonsShouldOnlySelectTheLast()
         {
             var pressedButtons = new List<PressableButton>();
-            var availableButtons = 
-                FindByName(testGameObject, ButtonHolder).
-                    GetComponentsInChildren<PressableButton>();
             var initialHandPosition = GetInitialHandPosition();
             TestHand hand = null;
             yield return GetHand(initialHandPosition, h => { hand = h; });
             Assert.AreEqual(0, GetToggledButtonCount());
             
-            foreach(var button in availableButtons)
+            foreach(var button in allButtons)
             {
                 var handPosition = 
                     GetInitialHandPositionBefore(button.gameObject, HandInFrontOfGameObject);
@@ -70,7 +64,7 @@ namespace InteractionTests
                 Assert.AreEqual(1, GetToggledButtonCount());
                 AddButtonToPressedList(pressedButtons);
             }
-            Assert.AreEqual(availableButtons.Length, pressedButtons.Count);
+            Assert.AreEqual(allButtons.Count, pressedButtons.Count);
         }
 
         [UnityTest]
@@ -91,12 +85,12 @@ namespace InteractionTests
 
         private int GetToggledButtonCount()
         {
-            return buttons.Count(b => b.IsToggled);
+            return allButtons.Count(b => b.IsToggled);
         }
 
         private void AddButtonToPressedList(List<PressableButton> pressedButtons)
         {
-            var button = buttons.FirstOrDefault(b => b.IsToggled);
+            var button = allButtons.FirstOrDefault(b => b.IsToggled);
             if (!pressedButtons.Contains(button))
             {
                 pressedButtons.Add(button);
